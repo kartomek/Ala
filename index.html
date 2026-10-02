@@ -443,22 +443,32 @@
       .card-photo-inner {
         position: relative;
         width: 100%;
-        height: 100%;
-        min-height: 140px;
+        aspect-ratio: 3 / 4;
         border-radius: 2px;
         overflow: hidden;
         background: linear-gradient(135deg, #fce7f3, #e9d5ff);
       }
 
       .card-photo img {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        display: none;
+        object-position: center top;
+        opacity: 0;
+        -webkit-user-drag: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        pointer-events: none;
       }
 
       .card-photo img.loaded {
-        display: block;
+        opacity: 1;
+      }
+
+      .card-book.open .card-photo {
+        opacity: 1;
       }
 
       .card-photo-fallback {
@@ -1247,9 +1257,10 @@
         }
 
         .card-photo {
-          width: 92px;
+          width: 104px;
           padding: 0.35rem 0.35rem 1rem;
           transform: rotate(9deg);
+          opacity: 1;
         }
 
         .card-photo::before {
@@ -1258,7 +1269,15 @@
           top: -6px;
         }
 
+        .card-photo img.loaded {
+          opacity: 1;
+        }
+
         @keyframes polaroidIn {
+          from {
+            opacity: 1;
+            transform: rotate(5deg) scale(0.94);
+          }
           to {
             opacity: 1;
             transform: rotate(9deg) scale(1);
@@ -1272,6 +1291,15 @@
         *::after {
           animation: none !important;
           transition-duration: 0.01ms !important;
+        }
+
+        .card-book.open .card-photo {
+          opacity: 1;
+          transform: rotate(8deg);
+        }
+
+        .card-book.open .card-photo img.loaded {
+          opacity: 1;
         }
       }
     </style>
@@ -1318,7 +1346,13 @@
             <div class="card-page card-page--photo">
               <div class="card-photo">
                 <div class="card-photo-inner">
-                  <img id="birthday-photo" src="" alt="" />
+                  <img
+                    id="birthday-photo"
+                    src=""
+                    alt="Ala"
+                    draggable="false"
+                    decoding="async"
+                  />
                   <div
                     class="card-photo-fallback"
                     id="photo-fallback"
@@ -2030,10 +2064,16 @@
       (function loadPhoto() {
         const img = document.getElementById("birthday-photo");
         const fallback = document.getElementById("photo-fallback");
+        const show = () => {
+          img.classList.add("loaded");
+          fallback.classList.add("hidden");
+        };
+        img.addEventListener("load", show, { once: true });
+        img.addEventListener("error", () => fallback.classList.remove("hidden"), {
+          once: true,
+        });
         img.src = PHOTO_DATA_URL;
-        img.alt = "Ala";
-        img.classList.add("loaded");
-        fallback.classList.add("hidden");
+        if (img.complete && img.naturalWidth > 0) show();
       })();
 
       resize();
